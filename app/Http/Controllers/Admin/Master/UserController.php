@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin\Master;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Role;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Str;
+use App\User;
+use App\Role;
 
-class RoleController extends Controller
+
+class UserController extends Controller
 {
     /**
      * Menampilkan data datatables
@@ -18,13 +21,13 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $role = Role::all();
-            return DataTables::of($role)
+            $user = User::getAll();
+            return DataTables::of($user)
                 ->addIndexColumn()
                 ->toJson();
         }
-
-        return view('admin.master.role.index');
+        $role = Role::all();
+        return view('admin.master.user.index', compact('role'));
     }
 
     /**
@@ -36,11 +39,15 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $validation = $request->validate([
-            'role' => 'required|unique:role',
+            'username' => 'required|unique:users|string',
+            'password' => 'required|min:4',
+            'role' => 'required'
         ]);
 
-        $create = Role::create([
-            'role' => $request->role
+        $create = User::create([
+            'username' => $request->username,
+            'password' => bcrypt($request->password),
+            'role_id' => $request->role
         ]);
 
         return response()->json(['status' => true]);
@@ -54,7 +61,7 @@ class RoleController extends Controller
      */
     public function show($id)
     {
-        return Role::find($id);
+        return User::find($id);
     }
 
     /**
@@ -67,11 +74,13 @@ class RoleController extends Controller
     public function update(Request $request, $id)
     {
         $validation = $request->validate([
-            'role' => 'required|unique:role,role,' . $id,
+            'username' => 'required|unique:users|string',
+            'role' => 'required'
         ]);
 
-        $update = Role::find($id)->update([
-            'role' => $request->role,
+        $update = User::find($id)->update([
+            'username' => $request->username,
+            'role_id' => $request->role,
         ]);
 
         return response()->json(['status' => true]);
@@ -81,11 +90,27 @@ class RoleController extends Controller
      * Melakukan hapus data berdasarkan id
      *
      * @param int $id
-     * @return object
+     * @return void
      */
     public function destroy($id)
     {
-        $delete = Role::find($id)->delete();
+        User::destroy($id);
         return response()->json(['status' => true]);
+    }
+
+    /**
+     * Reset password random berdasarkan id
+     *
+     * @param Request $request
+     * @param int $id
+     * @return void
+     */
+    public function reset(Request $request, $id)
+    {
+        if ($request->ajax()) {
+            $password = Str::random(8);
+            User::find($id)->update(['password' => bcrypt($password)]);
+            return response()->json(['status' => true, 'result' => $password]);
+        }
     }
 }

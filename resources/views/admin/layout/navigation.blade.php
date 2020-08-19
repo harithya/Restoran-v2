@@ -17,6 +17,7 @@
                     </a>
                     <ul class="submenu">
                         <li><a href="{{ url('admin/master/role') }}">Role</a></li>
+                        <li><a href="{{ url('admin/master/user') }}">User</a></li>
                     </ul>
                 </li>
 

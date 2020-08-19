@@ -42,7 +42,7 @@
         $("#table").on('click', '.delete', function(e){
             e.preventDefault();
             const id = $(this).attr("data-id");
-            const url = "{{ route('role.store') }}/"+ id;
+            const url = "{{ url('admin/master/role') }}/"+ id;
             _delete(url);
         });
 
